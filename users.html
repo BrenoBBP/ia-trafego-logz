@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - Bug Reporter</title>
+    <meta name="description" content="Gerenciamento de usuários do sistema">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <li>
+                        <a href="dashboard.html" class="nav-link">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="report-bug.html" class="nav-link">
+                            <span>🐛</span>
+                            <span>Reportar Bug</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="kanban.html" class="nav-link">
+                            <span>📋</span>
+                            <span>Kanban</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="users.html" class="nav-link active">
+                            <span>👥</span>
+                            <span>Usuários</span>
+                        </a>
+                    </li>
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role adm" id="userRole">ADM</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="page-header"
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="page-title">Gerenciar Usuários</h1>
+                    <p class="page-subtitle">Crie e gerencie os usuários do sistema</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <span>+</span>
+                    <span>Novo Usuário</span>
+                </button>
+            </div>
+
+            <!-- Users Table -->
+            <div class="glass-card-static" style="overflow-x: auto;">
+                <table class="users-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Cargo</th>
+                            <th>Criado em</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Novo Usuário</h3>
+                <button class="modal-close" onclick="closeUserModal()">&times;</button>
+            </div>
+            <form id="userForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="userName">Nome Completo *</label>
+                        <input type="text" id="userNameInput" class="form-input" placeholder="Nome do usuário" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="userEmail">Email *</label>
+                        <input type="email" id="userEmail" class="form-input" placeholder="email@exemplo.com" required>
+                    </div>
+
+                    <div class="form-group" id="passwordGroup">
+                        <label class="form-label" for="userPassword">Senha *</label>
+                        <input type="password" id="userPassword" class="form-input" placeholder="Mínimo 6 caracteres"
+                            minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="userRole">Cargo *</label>
+                        <select id="userRoleSelect" class="form-select" required>
+                            <option value="">Selecione um cargo</option>
+                            <option value="COLABORADOR">Colaborador (envia bugs)</option>
+                            <option value="DEV">DEV (recebe bugs)</option>
+                            <option value="ADM">ADM (acesso total)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeUserModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="submitUserBtn">Criar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmar Exclusão</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o usuário <strong id="deleteUserName"></strong>?</p>
+                <p class="text-muted mt-md">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/users.js"></script>
+</body>
+
+</html>

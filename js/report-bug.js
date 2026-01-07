@@ -1,0 +1,209 @@
+// ========================================
+// REPORT BUG PAGE LOGIC
+// ========================================
+
+let currentUser = null;
+let selectedFiles = [];
+
+// Initialize page
+(async () => {
+    showLoading('Carregando...');
+
+    // Check auth and role
+    const profile = await requireRole(['COLABORADOR', 'ADM']);
+    if (!profile) return;
+
+    currentUser = profile;
+
+    // Update user info in header
+    document.getElementById('userName').textContent = profile.name;
+    const roleEl = document.getElementById('userRole');
+    roleEl.textContent = profile.role;
+    roleEl.classList.add(profile.role.toLowerCase());
+
+    hideLoading();
+    initFileUpload();
+})();
+
+// ========================================
+// FILE UPLOAD HANDLING
+// ========================================
+
+function initFileUpload() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('screenshots');
+    const previewGrid = document.getElementById('previewGrid');
+
+    // Drag and drop events
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+}
+
+function handleFiles(files) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+
+    for (const file of files) {
+        // Validate file type
+        if (!allowedTypes.includes(file.type)) {
+            showToast(`Arquivo "${file.name}" não é uma imagem válida`, 'error');
+            continue;
+        }
+
+        // Validate file size
+        if (file.size > maxSize) {
+            showToast(`Arquivo "${file.name}" excede o limite de 5MB`, 'error');
+            continue;
+        }
+
+        // Check for duplicates
+        if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+            continue;
+        }
+
+        selectedFiles.push(file);
+    }
+
+    updatePreviewGrid();
+}
+
+function updatePreviewGrid() {
+    const previewGrid = document.getElementById('previewGrid');
+
+    if (selectedFiles.length === 0) {
+        previewGrid.innerHTML = '';
+        return;
+    }
+
+    previewGrid.innerHTML = selectedFiles.map((file, index) => {
+        const url = URL.createObjectURL(file);
+        return `
+            <div class="image-preview-item">
+                <img src="${url}" alt="Preview ${index + 1}">
+                <button type="button" class="image-preview-remove" onclick="removeFile(${index})">
+                    ✕
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updatePreviewGrid();
+}
+
+// ========================================
+// FORM SUBMISSION
+// ========================================
+
+document.getElementById('bugForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const description = document.getElementById('description').value.trim();
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Validate
+    if (selectedFiles.length === 0) {
+        showToast('Por favor, adicione pelo menos uma screenshot', 'error');
+        return;
+    }
+
+    if (!description) {
+        showToast('Por favor, descreva o bug encontrado', 'error');
+        return;
+    }
+
+    // Disable button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></span> <span>Enviando...</span>';
+
+    try {
+        // 1. Create the bug record
+        const { data: bug, error: bugError } = await supabase
+            .from('bugs')
+            .insert({
+                description: description,
+                reporter_id: currentUser.id,
+                reporter_name: currentUser.name,
+                status: 'PENDENTE'
+            })
+            .select()
+            .single();
+
+        if (bugError) throw bugError;
+
+        // 2. Upload images to storage
+        const imageUrls = [];
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${bug.id}/${Date.now()}_${i}.${fileExt}`;
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('bug-screenshots')
+                .upload(fileName, file);
+
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                continue;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('bug-screenshots')
+                .getPublicUrl(fileName);
+
+            imageUrls.push(urlData.publicUrl);
+        }
+
+        // 3. Save image URLs to database
+        if (imageUrls.length > 0) {
+            const imageRecords = imageUrls.map(url => ({
+                bug_id: bug.id,
+                image_url: url
+            }));
+
+            const { error: imagesError } = await supabase
+                .from('bug_images')
+                .insert(imageRecords);
+
+            if (imagesError) {
+                console.error('Error saving image records:', imagesError);
+            }
+        }
+
+        // Success!
+        showToast('Bug reportado com sucesso! 🎉', 'success');
+
+        // Reset form
+        document.getElementById('bugForm').reset();
+        selectedFiles = [];
+        updatePreviewGrid();
+
+    } catch (error) {
+        console.error('Error submitting bug:', error);
+        showToast('Erro ao enviar o bug. Tente novamente.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>📤</span> <span>Enviar Bug</span>';
+    }
+});

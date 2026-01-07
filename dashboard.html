@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bug Reporter</title>
+    <meta name="description" content="Dashboard do sistema de relatório de bugs">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu" id="navMenu">
+                    <!-- Navigation items will be injected based on role -->
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="page-header">
+                <h1 class="page-title">Bem-vindo ao Bug Reporter</h1>
+                <p class="page-subtitle" id="welcomeMessage">Carregando...</p>
+            </div>
+
+            <div id="dashboardContent"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <!-- Dashboard cards will be injected based on role -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        // Role-based navigation config
+        const roleConfig = {
+            'COLABORADOR': {
+                message: 'Você pode reportar bugs encontrados durante os testes.',
+                nav: [
+                    { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' }
+                ],
+                cards: [
+                    {
+                        icon: '📤',
+                        title: 'Reportar Bug',
+                        description: 'Envie screenshots e descrições dos bugs encontrados.',
+                        href: 'report-bug.html',
+                        btnText: 'Reportar',
+                        btnClass: 'btn-primary'
+                    }
+                ]
+            },
+            'DEV': {
+                message: 'Acompanhe os bugs reportados pela equipe de testes.',
+                nav: [
+                    { href: 'kanban.html', icon: '📋', label: 'Kanban de Bugs' }
+                ],
+                cards: [
+                    {
+                        icon: '📋',
+                        title: 'Ver Bugs',
+                        description: 'Visualize e gerencie os bugs reportados em formato Kanban.',
+                        href: 'kanban.html',
+                        btnText: 'Abrir Kanban',
+                        btnClass: 'btn-primary'
+                    }
+                ]
+            },
+            'ADM': {
+                message: 'Você tem acesso completo ao sistema.',
+                nav: [
+                    { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' },
+                    { href: 'kanban.html', icon: '📋', label: 'Kanban' },
+                    { href: 'users.html', icon: '👥', label: 'Usuários' }
+                ],
+                cards: [
+                    {
+                        icon: '📤',
+                        title: 'Reportar Bug',
+                        description: 'Envie screenshots e descrições dos bugs encontrados.',
+                        href: 'report-bug.html',
+                        btnText: 'Reportar',
+                        btnClass: 'btn-primary'
+                    },
+                    {
+                        icon: '📋',
+                        title: 'Ver Bugs',
+                        description: 'Visualize e gerencie os bugs reportados em formato Kanban.',
+                        href: 'kanban.html',
+                        btnText: 'Abrir Kanban',
+                        btnClass: 'btn-success'
+                    },
+                    {
+                        icon: '👥',
+                        title: 'Gerenciar Usuários',
+                        description: 'Crie e gerencie usuários do sistema.',
+                        href: 'users.html',
+                        btnText: 'Gerenciar',
+                        btnClass: 'btn-ghost'
+                    }
+                ]
+            }
+        };
+
+        // Initialize dashboard
+        (async () => {
+            showLoading('Carregando dashboard...');
+
+            const profile = await requireAuth().then(() => getCurrentUserProfile());
+            if (!profile) {
+                hideLoading();
+                return;
+            }
+
+            // Update user info
+            document.getElementById('userName').textContent = profile.name;
+            const roleEl = document.getElementById('userRole');
+            roleEl.textContent = profile.role;
+            roleEl.classList.add(profile.role.toLowerCase());
+
+            // Get role config
+            const config = roleConfig[profile.role];
+
+            // Update welcome message
+            document.getElementById('welcomeMessage').textContent = config.message;
+
+            // Build navigation
+            const navMenu = document.getElementById('navMenu');
+            navMenu.innerHTML = config.nav.map(item => `
+                <li>
+                    <a href="${item.href}" class="nav-link">
+                        <span>${item.icon}</span>
+                        <span>${item.label}</span>
+                    </a>
+                </li>
+            `).join('');
+
+            // Build dashboard cards
+            const dashboardContent = document.getElementById('dashboardContent');
+            dashboardContent.innerHTML = config.cards.map(card => `
+                <div class="glass-card">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">${card.icon}</div>
+                    <h3 style="margin-bottom: 0.5rem;">${card.title}</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">${card.description}</p>
+                    <a href="${card.href}" class="btn ${card.btnClass}">${card.btnText}</a>
+                </div>
+            `).join('');
+
+            hideLoading();
+        })();
+    </script>
+</body>
+
+</html>

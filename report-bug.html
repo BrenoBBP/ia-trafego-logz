@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar Bug - Bug Reporter</title>
+    <meta name="description" content="Envie bugs encontrados durante os testes">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <li>
+                        <a href="dashboard.html" class="nav-link">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="report-bug.html" class="nav-link active">
+                            <span>🐛</span>
+                            <span>Reportar Bug</span>
+                        </a>
+                    </li>
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="page-header">
+                <h1 class="page-title">Reportar Bug</h1>
+                <p class="page-subtitle">Envie screenshots e uma descrição do bug encontrado</p>
+            </div>
+
+            <div class="glass-card-static" style="max-width: 800px;">
+                <form id="bugForm">
+                    <!-- Screenshots Upload -->
+                    <div class="form-group">
+                        <label class="form-label">Screenshots do Bug *</label>
+                        <div class="file-upload-zone" id="uploadZone">
+                            <input type="file" id="screenshots" accept="image/*" multiple required>
+                            <div class="file-upload-icon">📷</div>
+                            <p class="file-upload-text">
+                                Clique ou arraste as imagens aqui
+                            </p>
+                            <p class="file-upload-hint">
+                                Formatos aceitos: PNG, JPG, JPEG, GIF (máx. 5MB cada)
+                            </p>
+                        </div>
+
+                        <!-- Image Preview Grid -->
+                        <div class="image-preview-grid" id="previewGrid"></div>
+                    </div>
+
+                    <!-- Bug Description -->
+                    <div class="form-group">
+                        <label class="form-label" for="description">Descrição / Observação *</label>
+                        <textarea id="description" class="form-textarea" placeholder="Descreva o bug encontrado. Inclua detalhes como:
+• O que você estava fazendo quando o bug aconteceu
+• O comportamento esperado vs o comportamento atual
+• Passos para reproduzir o bug" required rows="6"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="submitBtn">
+                        <span>📤</span>
+                        <span>Enviar Bug</span>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/report-bug.js"></script>
+</body>
+
+</html>

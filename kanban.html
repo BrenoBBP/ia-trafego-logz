@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban de Bugs - Bug Reporter</title>
+    <meta name="description" content="Visualize e gerencie bugs reportados">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <li>
+                        <a href="dashboard.html" class="nav-link">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="kanban.html" class="nav-link active">
+                            <span>📋</span>
+                            <span>Kanban</span>
+                        </a>
+                    </li>
+                    <li id="usersNavItem" class="hidden">
+                        <a href="users.html" class="nav-link">
+                            <span>👥</span>
+                            <span>Usuários</span>
+                        </a>
+                    </li>
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="page-header"
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="page-title">Kanban de Bugs</h1>
+                    <p class="page-subtitle">Gerencie os bugs reportados pela equipe</p>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="text-muted" style="font-size: 0.875rem;">Última atualização:</span>
+                    <span id="lastUpdate" style="font-size: 0.875rem;">--</span>
+                </div>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="kanban-container">
+                <!-- Pending Column -->
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <h2 class="kanban-title">
+                            <span>🔴</span>
+                            <span>Bugs Pendentes</span>
+                        </h2>
+                        <span class="kanban-count" id="pendingCount">0</span>
+                    </div>
+                    <div class="kanban-cards" id="pendingBugs">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎉</div>
+                            <h4 class="empty-state-title">Nenhum bug pendente</h4>
+                            <p class="empty-state-text">Todos os bugs foram resolvidos!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resolved Column -->
+                <div class="kanban-column resolved">
+                    <div class="kanban-header">
+                        <h2 class="kanban-title">
+                            <span>✅</span>
+                            <span>Bugs Resolvidos</span>
+                        </h2>
+                        <span class="kanban-count" id="resolvedCount">0</span>
+                    </div>
+                    <div class="kanban-cards" id="resolvedBugs">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <h4 class="empty-state-title">Nenhum bug resolvido</h4>
+                            <p class="empty-state-text">Os bugs resolvidos aparecerão aqui.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bug Detail Modal -->
+    <div class="modal-overlay" id="bugModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Detalhes do Bug</h3>
+                <button class="modal-close" onclick="closeBugModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="bugModalContent">
+                <!-- Content injected by JS -->
+            </div>
+            <div class="modal-footer" id="bugModalFooter">
+                <!-- Actions injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/kanban.js"></script>
+</body>
+
+</html>
