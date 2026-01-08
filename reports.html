@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Bugs - Bug Reporter</title>
+    <meta name="description" content="Relatórios de bugs corrigidos com resumos inteligentes">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .date-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .report-section {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .bugs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .bug-report-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 4px solid var(--success);
+        }
+
+        .bug-report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+            gap: 1rem;
+        }
+
+        .bug-report-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .bug-report-description {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .bug-report-summary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .bug-report-summary-label {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bug-report-summary-text {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-panel-icon {
+            font-size: 2rem;
+        }
+
+        .ai-panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .ai-panel-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .ai-output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            min-height: 150px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .ai-output.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+
+        .ai-output h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .ai-output ul {
+            list-style: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-output li {
+            margin-bottom: 0.25rem;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        @media print {
+
+            .header,
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            .report-section,
+            .ai-panel {
+                background: white;
+                border: 1px solid #ddd;
+            }
+
+            .bug-report-item {
+                background: #f5f5f5;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header no-print">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <li>
+                        <a href="dashboard.html" class="nav-link">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="kanban.html" class="nav-link">
+                            <span>📋</span>
+                            <span>Kanban</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="reports.html" class="nav-link active">
+                            <span>📊</span>
+                            <span>Relatórios</span>
+                        </a>
+                    </li>
+                    <li id="usersNavItem" class="hidden">
+                        <a href="users.html" class="nav-link">
+                            <span>👥</span>
+                            <span>Usuários</span>
+                        </a>
+                    </li>
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="reports-header no-print">
+                <div>
+                    <h1 class="page-title">Relatórios de Bugs Corrigidos</h1>
+                    <p class="page-subtitle">Gere relatórios inteligentes dos bugs resolvidos</p>
+                </div>
+                <div class="date-filters">
+                    <label class="text-muted" style="font-size: 0.875rem;">De:</label>
+                    <input type="date" id="startDate" class="date-input">
+                    <label class="text-muted" style="font-size: 0.875rem;">Até:</label>
+                    <input type="date" id="endDate" class="date-input">
+                    <button class="btn btn-primary btn-sm" onclick="loadResolvedBugs()">
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-card-icon">✅</div>
+                    <div class="stat-card-value" id="totalResolved">0</div>
+                    <div class="stat-card-label">Bugs Resolvidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">👥</div>
+                    <div class="stat-card-value" id="totalReporters">0</div>
+                    <div class="stat-card-label">Colaboradores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">⏱️</div>
+                    <div class="stat-card-value" id="avgResolutionTime">-</div>
+                    <div class="stat-card-label">Tempo Médio (dias)</div>
+                </div>
+            </div>
+
+            <!-- AI Summary Panel -->
+            <div class="ai-panel">
+                <div class="ai-panel-header">
+                    <div class="ai-panel-icon">🤖</div>
+                    <div>
+                        <div class="ai-panel-title">Resumo Inteligente <span class="ai-badge">IA</span></div>
+                        <div class="ai-panel-subtitle">Gere um resumo executivo dos bugs corrigidos</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="generateSummaryBtn" onclick="generateAISummary()">
+                    ✨ Gerar Resumo com IA
+                </button>
+
+                <div class="ai-output" id="aiOutput" style="display: none;"></div>
+
+                <div class="export-buttons" id="exportButtons" style="display: none;">
+                    <button class="btn btn-success btn-sm" onclick="copyToClipboard()">
+                        📋 Copiar Texto
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="exportAsPDF()">
+                        📄 Imprimir/PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resolved Bugs List -->
+            <div class="report-section">
+                <div class="report-section-header">
+                    <div class="report-section-title">
+                        ✅ Bugs Resolvidos no Período
+                    </div>
+                    <span class="text-muted" id="periodLabel">Carregando...</span>
+                </div>
+
+                <div class="bugs-list" id="bugsList">
+                    <p class="text-muted">Carregando...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        let currentUser = null;
+        let resolvedBugs = [];
+
+        // Initialize page
+        (async () => {
+            showLoading('Carregando relatórios...');
+
+            // Check auth - allow DEV and ADM only
+            const profile = await requireRole(['DEV', 'ADM']);
+            if (!profile) return;
+
+            currentUser = profile;
+
+            // Update user info in header
+            document.getElementById('userName').textContent = profile.name;
+            const roleEl = document.getElementById('userRole');
+            roleEl.textContent = profile.role;
+            roleEl.classList.add(profile.role.toLowerCase());
+
+            // Show users nav for ADM
+            if (profile.role === 'ADM') {
+                document.getElementById('usersNavItem').classList.remove('hidden');
+            }
+
+            // Set default date range (last 30 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+
+            // Load data
+            await loadResolvedBugs();
+
+            hideLoading();
+        })();
+
+        async function loadResolvedBugs() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+
+                // Add one day to end date to include full day
+                const endDatePlusOne = new Date(endDate);
+                endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+
+                const { data: bugs, error } = await supabaseClient
+                    .from('bugs')
+                    .select(`
+                        *,
+                        bug_images (
+                            id,
+                            image_url
+                        )
+                    `)
+                    .eq('status', 'RESOLVIDO')
+                    .gte('resolved_at', startDate)
+                    .lt('resolved_at', endDatePlusOne.toISOString().split('T')[0])
+                    .order('resolved_at', { ascending: false });
+
+                if (error) throw error;
+
+                resolvedBugs = bugs;
+
+                // Update stats
+                updateStats(bugs);
+
+                // Update period label
+                document.getElementById('periodLabel').textContent =
+                    `${formatDateShort(startDate)} - ${formatDateShort(endDate)}`;
+
+                // Render bugs
+                renderBugsList(bugs);
+
+            } catch (error) {
+                console.error('Error loading resolved bugs:', error);
+                showToast('Erro ao carregar bugs resolvidos', 'error');
+            }
+        }
+
+        function updateStats(bugs) {
+            document.getElementById('totalResolved').textContent = bugs.length;
+
+            // Count unique reporters
+            const reporters = new Set(bugs.map(b => b.reporter_id));
+            document.getElementById('totalReporters').textContent = reporters.size;
+
+            // Calculate average resolution time
+            if (bugs.length > 0) {
+                const totalDays = bugs.reduce((sum, bug) => {
+                    const created = new Date(bug.created_at);
+                    const resolved = new Date(bug.resolved_at);
+                    const diffTime = Math.abs(resolved - created);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return sum + diffDays;
+                }, 0);
+                const avg = (totalDays / bugs.length).toFixed(1);
+                document.getElementById('avgResolutionTime').textContent = avg;
+            } else {
+                document.getElementById('avgResolutionTime').textContent = '-';
+            }
+        }
+
+        function renderBugsList(bugs) {
+            const container = document.getElementById('bugsList');
+
+            if (bugs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h3>Nenhum bug resolvido neste período</h3>
+                        <p>Ajuste o filtro de datas para ver outros períodos.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = bugs.map(bug => `
+                <div class="bug-report-item">
+                    <div class="bug-report-header">
+                        <div>
+                            <strong>${escapeHtml(bug.reporter_name)}</strong>
+                            <span class="bug-report-meta">reportou em ${formatDateShort(bug.created_at)}</span>
+                        </div>
+                        <span class="bug-report-meta">
+                            ✅ Resolvido em ${formatDateShort(bug.resolved_at)}
+                        </span>
+                    </div>
+                    <p class="bug-report-description">${escapeHtml(bug.description)}</p>
+                </div>
+            `).join('');
+        }
+
+        async function generateAISummary() {
+            if (resolvedBugs.length === 0) {
+                showToast('Não há bugs resolvidos para gerar resumo', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('generateSummaryBtn');
+            const output = document.getElementById('aiOutput');
+            const exportBtns = document.getElementById('exportButtons');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Gerando...';
+
+            output.style.display = 'block';
+            output.classList.add('loading');
+            output.innerHTML = '<span class="loading-spinner"></span> Analisando bugs e gerando resumo...';
+
+            try {
+                // Generate AI summary using local processing
+                // (In production, you could integrate with OpenAI, Gemini, etc.)
+                const summary = await generateLocalSummary(resolvedBugs);
+
+                output.classList.remove('loading');
+                output.innerHTML = summary;
+                exportBtns.style.display = 'flex';
+
+            } catch (error) {
+                console.error('Error generating summary:', error);
+                output.classList.remove('loading');
+                output.innerHTML = `<span style="color: var(--danger);">Erro ao gerar resumo. Tente novamente.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Gerar Resumo com IA';
+            }
+        }
+
+        async function generateLocalSummary(bugs) {
+            // Simulating AI processing with local summarization
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            // Group bugs by reporter
+            const byReporter = {};
+            bugs.forEach(bug => {
+                if (!byReporter[bug.reporter_name]) {
+                    byReporter[bug.reporter_name] = [];
+                }
+                byReporter[bug.reporter_name].push(bug);
+            });
+
+            // Calculate resolution times
+            const resolutionTimes = bugs.map(bug => {
+                const created = new Date(bug.created_at);
+                const resolved = new Date(bug.resolved_at);
+                return Math.ceil(Math.abs(resolved - created) / (1000 * 60 * 60 * 24));
+            });
+            const avgTime = (resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length).toFixed(1);
+            const minTime = Math.min(...resolutionTimes);
+            const maxTime = Math.max(...resolutionTimes);
+
+            // Generate categorized topics from bug descriptions
+            const topics = categorizebugs(bugs);
+
+            // Build the summary
+            let summary = `<h3>📊 RELATÓRIO DE BUGS CORRIGIDOS</h3>
+<strong>Período:</strong> ${formatDateShort(startDate)} a ${formatDateShort(endDate)}
+<strong>Data do Relatório:</strong> ${formatDateShort(new Date())}
+
+<h3>📈 Estatísticas Gerais</h3>
+• <strong>Total de bugs corrigidos:</strong> ${bugs.length}
+• <strong>Colaboradores que reportaram:</strong> ${Object.keys(byReporter).length}
+• <strong>Tempo médio de resolução:</strong> ${avgTime} dias
+• <strong>Resolução mais rápida:</strong> ${minTime} dia(s)
+• <strong>Resolução mais longa:</strong> ${maxTime} dias
+
+<h3>🏆 Contribuição por Colaborador</h3>`;
+
+            Object.entries(byReporter)
+                .sort((a, b) => b[1].length - a[1].length)
+                .forEach(([name, bugsReported]) => {
+                    summary += `\n• <strong>${name}:</strong> ${bugsReported.length} bug(s) reportado(s)`;
+                });
+
+            summary += `\n\n<h3>📋 Bugs Corrigidos por Categoria</h3>`;
+
+            topics.forEach(topic => {
+                summary += `\n<strong>${topic.category}</strong>`;
+                topic.items.forEach(item => {
+                    summary += `\n  • ${item}`;
+                });
+                summary += '\n';
+            });
+
+            summary += `\n<h3>✅ Conclusão</h3>
+No período analisado, foram resolvidos ${bugs.length} bugs reportados por ${Object.keys(byReporter).length} colaborador(es). O tempo médio de resolução foi de ${avgTime} dias, demonstrando a eficiência da equipe de desenvolvimento na correção de problemas identificados durante os testes.
+
+---
+<em>Relatório gerado automaticamente pelo Bug Reporter</em>`;
+
+            return summary;
+        }
+
+        function categorizebugs(bugs) {
+            // Simple keyword-based categorization
+            const categories = {
+                'Interface/Visual': ['tela', 'botão', 'visual', 'layout', 'css', 'cor', 'fonte', 'imagem', 'ícone', 'interface'],
+                'Funcionalidade': ['funciona', 'erro', 'bug', 'problema', 'falha', 'não', 'quebrado', 'comportamento'],
+                'Performance': ['lento', 'demora', 'carrega', 'performance', 'velocidade', 'travando'],
+                'Dados': ['dados', 'salvar', 'carregar', 'banco', 'perda', 'informação'],
+                'Outros': []
+            };
+
+            const categorized = {};
+            const usedBugs = new Set();
+
+            // Categorize bugs based on keywords
+            bugs.forEach(bug => {
+                const desc = bug.description.toLowerCase();
+                let assigned = false;
+
+                for (const [category, keywords] of Object.entries(categories)) {
+                    if (category === 'Outros') continue;
+
+                    if (keywords.some(keyword => desc.includes(keyword))) {
+                        if (!categorized[category]) categorized[category] = [];
+                        categorized[category].push(truncateText(bug.description, 100));
+                        usedBugs.add(bug.id);
+                        assigned = true;
+                        break;
+                    }
+                }
+
+                if (!assigned) {
+                    if (!categorized['Outros']) categorized['Outros'] = [];
+                    categorized['Outros'].push(truncateText(bug.description, 100));
+                }
+            });
+
+            // Convert to array format
+            return Object.entries(categorized)
+                .filter(([_, items]) => items.length > 0)
+                .map(([category, items]) => ({
+                    category: `${getCategoryEmoji(category)} ${category} (${items.length})`,
+                    items: items.slice(0, 5) // Limit to 5 items per category
+                }));
+        }
+
+        function getCategoryEmoji(category) {
+            const emojis = {
+                'Interface/Visual': '🎨',
+                'Funcionalidade': '⚙️',
+                'Performance': '⚡',
+                'Dados': '💾',
+                'Outros': '📌'
+            };
+            return emojis[category] || '📌';
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength).trim() + '...';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('aiOutput');
+            const text = output.innerText;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Relatório copiado para a área de transferência!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showToast('Erro ao copiar texto', 'error');
+            });
+        }
+
+        function exportAsPDF() {
+            window.print();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDateShort(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+
+</html>
