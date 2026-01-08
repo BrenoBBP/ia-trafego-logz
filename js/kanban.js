@@ -21,6 +21,11 @@ let bugsSubscription = null;
     // Subscribe to real-time updates
     subscribeToUpdates();
 
+    // Initialize browser notifications for DEV users
+    if (profile.role === 'DEV') {
+        initDevNotifications();
+    }
+
     hideLoading();
 })();
 

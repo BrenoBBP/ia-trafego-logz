@@ -424,3 +424,94 @@ ${bugData.expectedBehavior ? `✅ Esperado: ${bugData.expectedBehavior.substring
         console.error('Error sending CallMeBot notifications:', error);
     }
 }
+
+// ========================================
+// BROWSER PUSH NOTIFICATIONS
+// ========================================
+
+/**
+ * Request notification permission from the user
+ * @returns {Promise<boolean>} Whether permission was granted
+ */
+async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('Browser does not support notifications');
+        return false;
+    }
+
+    if (Notification.permission === 'granted') {
+        return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+    }
+
+    return false;
+}
+
+/**
+ * Show a browser notification for new bug
+ * @param {Object} bugData - Bug information
+ */
+function showBrowserNotification(bugData) {
+    if (Notification.permission !== 'granted') return;
+
+    const notification = new Notification('🐛 Novo Bug Reportado!', {
+        body: `${bugData.reporter_name}: ${bugData.description.substring(0, 100)}${bugData.description.length > 100 ? '...' : ''}`,
+        icon: '🐛',
+        tag: 'new-bug',
+        requireInteraction: true
+    });
+
+    notification.onclick = () => {
+        window.focus();
+        window.location.href = '/kanban.html';
+        notification.close();
+    };
+
+    // Auto close after 10 seconds
+    setTimeout(() => notification.close(), 10000);
+}
+
+/**
+ * Subscribe to real-time bug notifications (for DEV users)
+ */
+function subscribeToBugNotifications() {
+    // Only subscribe if we have notification permission
+    if (Notification.permission !== 'granted') return;
+
+    const channel = supabaseClient
+        .channel('new_bugs_notifications')
+        .on('postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'bugs'
+            },
+            (payload) => {
+                console.log('New bug received:', payload);
+                showBrowserNotification(payload.new);
+            }
+        )
+        .subscribe();
+
+    console.log('Subscribed to bug notifications');
+    return channel;
+}
+
+/**
+ * Initialize notifications for DEV users
+ * Call this after user is authenticated and is a DEV
+ */
+async function initDevNotifications() {
+    const hasPermission = await requestNotificationPermission();
+
+    if (hasPermission) {
+        subscribeToBugNotifications();
+        console.log('DEV notifications initialized');
+    } else {
+        console.log('Notification permission not granted');
+    }
+}
