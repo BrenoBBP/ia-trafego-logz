@@ -4,7 +4,7 @@
 
 // Supabase credentials
 const SUPABASE_URL = 'https://hifffeaitermzwjpupnx.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Zbd2F91J0SFkobfck41Znw_J01xWpk2';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZmZmZWFpdGVybXp3anB1cG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MTI4NDIsImV4cCI6MjA4MzI4ODg0Mn0.lGIlgm54NmftRxtMr7hyCd8z3hz2EW3b9QQGVBgfswk';
 
 // Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -53,6 +53,27 @@ async function signIn(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
+/**
+ * Sign up with email and password
+ */
+async function signUp(email, password, name) {
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: {
+                name: name
+            }
+        }
     });
 
     if (error) {

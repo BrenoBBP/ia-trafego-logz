@@ -1,12 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bug Reporter - Login</title>
     <meta name="description" content="Sistema de relatório de bugs para testes de software">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .auth-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
+
 <body>
     <div class="login-page">
         <div class="glass-card login-card">
@@ -16,29 +68,24 @@
                 <p class="login-subtitle">Sistema de Relatório de Bugs</p>
             </div>
 
-            <form id="loginForm">
+            <!-- Auth Tabs -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-tab="login">Entrar</button>
+                <button type="button" class="auth-tab" data-tab="signup">Criar Conta</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active">
                 <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        class="form-input" 
-                        placeholder="seu@email.com"
-                        required
-                        autocomplete="email"
-                    >
+                    <label class="form-label" for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com" required
+                        autocomplete="email">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="password">Senha</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="form-input" 
-                        placeholder="••••••••"
-                        required
-                        autocomplete="current-password"
-                    >
+                    <label class="form-label" for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required
+                        autocomplete="current-password">
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
@@ -46,6 +93,42 @@
                 </button>
 
                 <p id="loginError" class="text-danger text-center mt-md hidden"></p>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="signupName">Nome Completo</label>
+                    <input type="text" id="signupName" class="form-input" placeholder="Seu nome" required
+                        autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="seu@email.com" required
+                        autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="signupPassword">Senha</label>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="Mínimo 6 caracteres"
+                        required minlength="6" autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="signupPasswordConfirm">Confirmar Senha</label>
+                    <input type="password" id="signupPasswordConfirm" class="form-input" placeholder="Repita a senha"
+                        required minlength="6" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                    Criar Conta
+                </button>
+
+                <p id="signupError" class="text-danger text-center mt-md hidden"></p>
+                <div id="signupSuccess" class="success-message hidden">
+                    ✓ Conta criada com sucesso! Verifique seu email para confirmar.
+                </div>
             </form>
         </div>
     </div>
@@ -62,12 +145,37 @@
             }
         })();
 
+        // Tab switching
+        const tabs = document.querySelectorAll('.auth-tab');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                if (tab.dataset.tab === 'login') {
+                    loginForm.classList.add('active');
+                    signupForm.classList.remove('active');
+                } else {
+                    loginForm.classList.remove('active');
+                    signupForm.classList.add('active');
+                }
+
+                // Clear errors
+                document.getElementById('loginError').classList.add('hidden');
+                document.getElementById('signupError').classList.add('hidden');
+                document.getElementById('signupSuccess').classList.add('hidden');
+            });
+        });
+
         // Login form handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             const errorEl = document.getElementById('loginError');
             const submitBtn = e.target.querySelector('button[type="submit"]');
 
@@ -86,6 +194,76 @@
                 submitBtn.textContent = 'Entrar';
             }
         });
+
+        // Signup form handler
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+            const errorEl = document.getElementById('signupError');
+            const successEl = document.getElementById('signupSuccess');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            // Validate passwords match
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'As senhas não coincidem';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Validate password length
+            if (password.length < 6) {
+                errorEl.textContent = 'A senha deve ter no mínimo 6 caracteres';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></span>';
+
+            try {
+                const result = await signUp(email, password, name);
+                console.log('Signup result:', result);
+                
+                // Check if user was created
+                if (result.user) {
+                    successEl.classList.remove('hidden');
+                    // Clear form
+                    e.target.reset();
+                    
+                    // If email confirmation is disabled, redirect to dashboard
+                    if (result.session) {
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                    }
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                let errorMessage = 'Erro ao criar conta. Tente novamente.';
+                
+                if (error.message.includes('already registered')) {
+                    errorMessage = 'Este email já está cadastrado';
+                } else if (error.message.includes('invalid')) {
+                    errorMessage = 'Email inválido';
+                } else if (error.message.includes('weak')) {
+                    errorMessage = 'Senha muito fraca';
+                }
+                
+                errorEl.textContent = errorMessage;
+                errorEl.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Criar Conta';
+            }
+        });
     </script>
 </body>
+
 </html>
