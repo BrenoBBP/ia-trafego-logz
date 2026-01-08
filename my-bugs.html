@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Bugs - Bug Reporter</title>
+    <meta name="description" content="Acompanhe os bugs que você reportou">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .bugs-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .bugs-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .bug-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .bug-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .bug-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .bug-item-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .bug-item-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .bug-item-status.pendente {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .bug-item-status.resolvido {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .bug-item-description {
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .bug-item-images {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .bug-item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .bug-item-image:hover {
+            transform: scale(1.1);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-value.pending {
+            color: #fbbf24;
+        }
+
+        .stat-card-value.resolved {
+            color: #22c55e;
+        }
+
+        .stat-card-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .empty-bugs {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-bugs-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <li>
+                        <a href="dashboard.html" class="nav-link">
+                            <span>🏠</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="report-bug.html" class="nav-link">
+                            <span>🐛</span>
+                            <span>Reportar Bug</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="my-bugs.html" class="nav-link active">
+                            <span>📋</span>
+                            <span>Meus Bugs</span>
+                        </a>
+                    </li>
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="page-header">
+                <h1 class="page-title">Meus Bugs</h1>
+                <p class="page-subtitle">Acompanhe o status dos bugs que você reportou</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card">
+                    <div class="stat-card-value" id="totalBugs">-</div>
+                    <div class="stat-card-label">Total Reportados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value pending" id="pendingBugs">-</div>
+                    <div class="stat-card-label">Pendentes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value resolved" id="resolvedBugs">-</div>
+                    <div class="stat-card-label">Resolvidos</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bugs-filters">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="PENDENTE">Pendentes</button>
+                <button class="filter-btn" data-filter="RESOLVIDO">Resolvidos</button>
+            </div>
+
+            <!-- Bugs Grid -->
+            <div class="bugs-grid" id="bugsGrid">
+                <p class="text-muted">Carregando...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img class="lightbox-image" id="lightboxImage" src="" alt="Screenshot">
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        let currentUser = null;
+        let allBugs = [];
+        let currentFilter = 'all';
+
+        // Initialize page
+        (async () => {
+            showLoading('Carregando seus bugs...');
+
+            // Check auth - allow COLABORADOR and ADM
+            const profile = await requireRole(['COLABORADOR', 'ADM']);
+            if (!profile) return;
+
+            currentUser = profile;
+
+            // Update user info in header
+            document.getElementById('userName').textContent = profile.name;
+            const roleEl = document.getElementById('userRole');
+            roleEl.textContent = profile.role;
+            roleEl.classList.add(profile.role.toLowerCase());
+
+            // Load bugs
+            await loadMyBugs();
+
+            hideLoading();
+
+            // Setup filter buttons
+            setupFilters();
+        })();
+
+        async function loadMyBugs() {
+            try {
+                const { data: bugs, error } = await supabaseClient
+                    .from('bugs')
+                    .select(`
+                        *,
+                        bug_images (
+                            id,
+                            image_url
+                        )
+                    `)
+                    .eq('reporter_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allBugs = bugs;
+
+                // Update stats
+                const pending = bugs.filter(b => b.status === 'PENDENTE').length;
+                const resolved = bugs.filter(b => b.status === 'RESOLVIDO').length;
+
+                document.getElementById('totalBugs').textContent = bugs.length;
+                document.getElementById('pendingBugs').textContent = pending;
+                document.getElementById('resolvedBugs').textContent = resolved;
+
+                // Render bugs
+                renderBugs(bugs);
+
+            } catch (error) {
+                console.error('Error loading bugs:', error);
+                showToast('Erro ao carregar bugs', 'error');
+            }
+        }
+
+        function renderBugs(bugs) {
+            const grid = document.getElementById('bugsGrid');
+
+            if (bugs.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-bugs">
+                        <div class="empty-bugs-icon">🔍</div>
+                        <h3>Nenhum bug encontrado</h3>
+                        <p>Você ainda não reportou nenhum bug${currentFilter !== 'all' ? ' com esse status' : ''}.</p>
+                        <a href="report-bug.html" class="btn btn-primary" style="margin-top: 1rem;">
+                            Reportar Bug
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = bugs.map(bug => {
+                const images = bug.bug_images || [];
+                const statusClass = bug.status.toLowerCase();
+
+                return `
+                    <div class="bug-item">
+                        <div class="bug-item-header">
+                            <span class="bug-item-date">${formatDate(bug.created_at)}</span>
+                            <span class="bug-item-status ${statusClass}">${bug.status}</span>
+                        </div>
+                        <p class="bug-item-description">${escapeHtml(bug.description)}</p>
+                        ${images.length > 0 ? `
+                            <div class="bug-item-images">
+                                ${images.map(img => `
+                                    <img 
+                                        src="${img.image_url}" 
+                                        alt="Screenshot" 
+                                        class="bug-item-image"
+                                        onclick="openLightbox('${img.image_url}')"
+                                    >
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        ${bug.status === 'RESOLVIDO' && bug.resolved_at ? `
+                            <p class="text-success" style="margin-top: 0.75rem; font-size: 0.875rem;">
+                                ✅ Resolvido em ${formatDate(bug.resolved_at)}
+                            </p>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setupFilters() {
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update active state
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Filter bugs
+                    currentFilter = btn.dataset.filter;
+                    const filtered = currentFilter === 'all'
+                        ? allBugs
+                        : allBugs.filter(b => b.status === currentFilter);
+
+                    renderBugs(filtered);
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Lightbox
+        function openLightbox(imageUrl) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            lightboxImage.src = imageUrl;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        // Close lightbox on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+    </script>
+</body>
+
+</html>
