@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS users_profile (
 -- 2. Criar tabela de bugs
 CREATE TABLE IF NOT EXISTS bugs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title TEXT,
+    title TEXT, 
     description TEXT NOT NULL,
+    expected_behavior TEXT,
     status TEXT NOT NULL DEFAULT 'PENDENTE' CHECK (status IN ('PENDENTE', 'RESOLVIDO')),
     reporter_id UUID REFERENCES users_profile(id),
     reporter_name TEXT NOT NULL,

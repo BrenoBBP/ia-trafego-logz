@@ -64,11 +64,19 @@
 
                     <!-- Bug Description -->
                     <div class="form-group">
-                        <label class="form-label" for="description">Descrição / Observação *</label>
+                        <label class="form-label" for="description">Descrição do Bug *</label>
                         <textarea id="description" class="form-textarea" placeholder="Descreva o bug encontrado. Inclua detalhes como:
 • O que você estava fazendo quando o bug aconteceu
-• O comportamento esperado vs o comportamento atual
-• Passos para reproduzir o bug" required rows="6"></textarea>
+• O comportamento atual que está errado
+• Passos para reproduzir o bug" required rows="5"></textarea>
+                    </div>
+
+                    <!-- Expected Behavior -->
+                    <div class="form-group">
+                        <label class="form-label" for="expectedBehavior">Comportamento Esperado *</label>
+                        <textarea id="expectedBehavior" class="form-textarea" placeholder="Explique como deveria funcionar corretamente:
+• Qual o resultado esperado
+• Como a funcionalidade deveria se comportar" required rows="4"></textarea>
                     </div>
 
                     <!-- Submit Button -->

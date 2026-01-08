@@ -112,6 +112,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const description = document.getElementById('description').value.trim();
+    const expectedBehavior = document.getElementById('expectedBehavior').value.trim();
     const submitBtn = document.getElementById('submitBtn');
 
     // Validate
@@ -125,6 +126,11 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
         return;
     }
 
+    if (!expectedBehavior) {
+        showToast('Por favor, explique o comportamento esperado', 'error');
+        return;
+    }
+
     // Disable button
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></span> <span>Enviando...</span>';
@@ -135,6 +141,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
             .from('bugs')
             .insert({
                 description: description,
+                expected_behavior: expectedBehavior,
                 reporter_id: currentUser.id,
                 reporter_name: currentUser.name,
                 status: 'PENDENTE'

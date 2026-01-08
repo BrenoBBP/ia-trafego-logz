@@ -166,9 +166,21 @@ async function openBugModal(bugId) {
                     </div>
                 </div>
                 
-                <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 1.5rem;">
-                    <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(bug.description)}</p>
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">🐛 DESCRIÇÃO DO BUG</h4>
+                    <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid var(--danger);">
+                        <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(bug.description)}</p>
+                    </div>
                 </div>
+
+                ${bug.expected_behavior ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">✅ COMPORTAMENTO ESPERADO</h4>
+                        <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid var(--success);">
+                            <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(bug.expected_behavior)}</p>
+                        </div>
+                    </div>
+                ` : ''}
 
                 ${images.length > 0 ? `
                     <div>
