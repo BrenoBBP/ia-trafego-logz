@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Bug Reporter</title>
+    <meta name="description" content="Gerencie seu perfil de usuário">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient-button);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 600;
+            color: white;
+            border: 4px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            background: var(--accent-primary);
+            border: 2px solid var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+        }
+
+        .profile-avatar-edit:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-avatar-edit input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .profile-role {
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: var(--accent-primary);
+        }
+
+        .profile-role.dev {
+            background: var(--accent-success);
+        }
+
+        .profile-role.adm {
+            background: var(--accent-warning);
+            color: #000;
+        }
+
+        .required-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            border-radius: 8px;
+            color: #fbbf24;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .whatsapp-input {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .whatsapp-prefix {
+            padding: 0 1rem;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .whatsapp-input .form-input {
+            border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+            border-left: none;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <span class="logo-icon">🐛</span>
+                    <span>Bug Reporter</span>
+                </div>
+
+                <nav class="nav-menu">
+                    <!-- Navigation will be built dynamically based on user role -->
+                </nav>
+
+                <div class="user-info">
+                    <div class="user-badge">
+                        <span id="userName">Carregando...</span>
+                        <span class="user-role" id="userRole">...</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="signOut()">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container" style="flex: 1; padding-top: 2rem; padding-bottom: 2rem;">
+            <div class="profile-container">
+                <div class="page-header" style="text-align: center; border: none;">
+                    <h1 class="page-title">Meu Perfil</h1>
+                    <p class="page-subtitle">Configure suas informações pessoais</p>
+                </div>
+
+                <div id="requiredNotice" class="required-badge" style="display: none;">
+                    ⚠️ Complete seu perfil para continuar usando o sistema
+                </div>
+
+                <div class="glass-card-static">
+                    <form id="profileForm">
+                        <!-- Profile Header -->
+                        <div class="profile-header">
+                            <div class="profile-avatar-container">
+                                <div class="profile-avatar" id="profileAvatar">
+                                    <span id="avatarInitials">?</span>
+                                </div>
+                                <label class="profile-avatar-edit">
+                                    📷
+                                    <input type="file" id="photoInput" accept="image/*">
+                                </label>
+                            </div>
+                            <span class="profile-role" id="profileRole">...</span>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="profileName">Nome Completo *</label>
+                            <input type="text" id="profileName" class="form-input" placeholder="Seu nome completo"
+                                required>
+                        </div>
+
+                        <!-- Email (read-only) -->
+                        <div class="form-group">
+                            <label class="form-label" for="profileEmail">Email</label>
+                            <input type="email" id="profileEmail" class="form-input" disabled>
+                            <p class="form-hint">O email não pode ser alterado</p>
+                        </div>
+
+                        <!-- WhatsApp -->
+                        <div class="form-group">
+                            <label class="form-label" for="profileWhatsapp">WhatsApp *</label>
+                            <div class="whatsapp-input">
+                                <span class="whatsapp-prefix">+55</span>
+                                <input type="tel" id="profileWhatsapp" class="form-input" placeholder="11999999999"
+                                    pattern="[0-9]{10,11}" title="Digite o DDD + número (ex: 11999999999)" required>
+                            </div>
+                            <p class="form-hint">Digite o DDD + número (ex: 11999999999)</p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="saveBtn">
+                            💾 Salvar Alterações
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        let currentUser = null;
+        let fromReportBug = false;
+
+        // Check if redirected from report-bug
+        const urlParams = new URLSearchParams(window.location.search);
+        fromReportBug = urlParams.get('from') === 'report-bug';
+
+        // Initialize page
+        (async () => {
+            showLoading('Carregando perfil...');
+
+            // Get profile (allow all roles)
+            const profile = await initPage();
+            if (!profile) return;
+
+            currentUser = profile;
+
+            // Show required notice if coming from report-bug and WhatsApp is missing
+            if (fromReportBug && !profile.whatsapp) {
+                document.getElementById('requiredNotice').style.display = 'flex';
+            }
+
+            // Populate form
+            populateForm(profile);
+
+            hideLoading();
+
+            // Setup photo upload
+            setupPhotoUpload();
+        })();
+
+        function populateForm(profile) {
+            document.getElementById('profileName').value = profile.name || '';
+            document.getElementById('profileEmail').value = profile.email || '';
+            document.getElementById('profileWhatsapp').value = profile.whatsapp || '';
+
+            // Set avatar
+            const avatar = document.getElementById('profileAvatar');
+            const initials = document.getElementById('avatarInitials');
+
+            if (profile.photo_url) {
+                avatar.innerHTML = `<img src="${profile.photo_url}" alt="Foto de perfil">`;
+            } else {
+                initials.textContent = getInitials(profile.name);
+            }
+
+            // Set role badge
+            const roleBadge = document.getElementById('profileRole');
+            roleBadge.textContent = profile.role;
+            roleBadge.classList.add(profile.role.toLowerCase());
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        }
+
+        function setupPhotoUpload() {
+            const photoInput = document.getElementById('photoInput');
+
+            photoInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Validate file size (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('A imagem deve ter no máximo 2MB', 'error');
+                    return;
+                }
+
+                showLoading('Enviando foto...');
+
+                try {
+                    // Upload to Supabase Storage
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${currentUser.id}/avatar.${fileExt}`;
+
+                    const { data, error: uploadError } = await supabaseClient.storage
+                        .from('bug-screenshots')
+                        .upload(fileName, file, { upsert: true });
+
+                    if (uploadError) throw uploadError;
+
+                    // Get public URL
+                    const { data: { publicUrl } } = supabaseClient.storage
+                        .from('bug-screenshots')
+                        .getPublicUrl(fileName);
+
+                    // Update profile with photo URL
+                    const { error: updateError } = await supabaseClient
+                        .from('users_profile')
+                        .update({
+                            photo_url: publicUrl,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', currentUser.id);
+
+                    if (updateError) throw updateError;
+
+                    // Update avatar display
+                    const avatar = document.getElementById('profileAvatar');
+                    avatar.innerHTML = `<img src="${publicUrl}" alt="Foto de perfil">`;
+
+                    showToast('Foto atualizada com sucesso!', 'success');
+
+                } catch (error) {
+                    console.error('Error uploading photo:', error);
+                    showToast('Erro ao enviar foto', 'error');
+                }
+
+                hideLoading();
+            });
+        }
+
+        // Form submit
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('profileName').value.trim();
+            const whatsapp = document.getElementById('profileWhatsapp').value.trim();
+            const saveBtn = document.getElementById('saveBtn');
+
+            // Validate
+            if (!name) {
+                showToast('Por favor, preencha seu nome', 'error');
+                return;
+            }
+
+            if (!whatsapp || whatsapp.length < 10) {
+                showToast('Por favor, preencha um WhatsApp válido', 'error');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></span> Salvando...';
+
+            try {
+                const { error } = await supabaseClient
+                    .from('users_profile')
+                    .update({
+                        name: name,
+                        whatsapp: whatsapp,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+
+                showToast('Perfil atualizado com sucesso!', 'success');
+
+                // If came from report-bug, redirect back
+                if (fromReportBug) {
+                    setTimeout(() => {
+                        window.location.href = 'report-bug.html';
+                    }, 1000);
+                }
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showToast('Erro ao atualizar perfil', 'error');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Salvar Alterações';
+        });
+    </script>
+</body>
+
+</html>

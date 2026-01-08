@@ -162,15 +162,35 @@ async function openBugModal(bugId) {
         currentBugData = bug;
         const images = bug.bug_images || [];
 
+        // Fetch reporter profile for additional info
+        let reporterProfile = null;
+        try {
+            const { data: profile } = await supabaseClient
+                .from('users_profile')
+                .select('*')
+                .eq('id', bug.reporter_id)
+                .single();
+            reporterProfile = profile;
+        } catch (e) {
+            console.log('Could not fetch reporter profile');
+        }
+
         // Render modal content
         document.getElementById('bugModalContent').innerHTML = `
             <div style="margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                    <div class="bug-card-reporter-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
-                        ${getInitials(bug.reporter_name)}
+                <div class="reporter-clickable" 
+                     style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: background 0.2s;"
+                     onclick="event.stopPropagation(); openReporterProfile('${bug.reporter_id}')"
+                     onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                     onmouseout="this.style.background='transparent'">
+                    <div class="bug-card-reporter-avatar" style="width: 40px; height: 40px; font-size: 1rem; ${reporterProfile?.photo_url ? 'padding: 0; overflow: hidden;' : ''}">
+                        ${reporterProfile?.photo_url ? `<img src="${reporterProfile.photo_url}" style="width: 100%; height: 100%; object-fit: cover;">` : getInitials(bug.reporter_name)}
                     </div>
-                    <div>
-                        <p style="font-weight: 500; margin-bottom: 0.25rem;">${bug.reporter_name}</p>
+                    <div style="flex: 1;">
+                        <p style="font-weight: 500; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                            ${bug.reporter_name}
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">👆 Ver perfil</span>
+                        </p>
                         <p class="text-muted" style="font-size: 0.875rem;">${formatDate(bug.created_at)}</p>
                     </div>
                 </div>
@@ -252,6 +272,89 @@ document.getElementById('bugModal').addEventListener('click', (e) => {
         closeBugModal();
     }
 });
+
+// ========================================
+// REPORTER PROFILE POPUP
+// ========================================
+
+async function openReporterProfile(reporterId) {
+    showLoading('Carregando perfil...');
+
+    try {
+        const { data: profile, error } = await supabaseClient
+            .from('users_profile')
+            .select('*')
+            .eq('id', reporterId)
+            .single();
+
+        if (error) throw error;
+
+        // Create profile popup
+        const existingPopup = document.querySelector('.profile-popup');
+        if (existingPopup) existingPopup.remove();
+
+        const popup = document.createElement('div');
+        popup.className = 'profile-popup';
+        popup.innerHTML = `
+            <div class="profile-popup-content">
+                <button class="profile-popup-close" onclick="closeReporterProfile()">×</button>
+                
+                <div class="profile-popup-avatar">
+                    ${profile.photo_url
+                ? `<img src="${profile.photo_url}" alt="${profile.name}">`
+                : `<span>${getInitials(profile.name)}</span>`
+            }
+                </div>
+                
+                <h3 class="profile-popup-name">${profile.name}</h3>
+                <span class="profile-popup-role ${profile.role.toLowerCase()}">${profile.role}</span>
+                
+                <div class="profile-popup-info">
+                    <div class="profile-popup-item">
+                        <span class="profile-popup-icon">📧</span>
+                        <span>${profile.email}</span>
+                    </div>
+                    
+                    ${profile.whatsapp ? `
+                        <a href="https://wa.me/55${profile.whatsapp.replace(/\D/g, '')}" 
+                           target="_blank" 
+                           class="profile-popup-whatsapp">
+                            <span class="profile-popup-icon">📱</span>
+                            <span>+55 ${profile.whatsapp}</span>
+                            <span class="whatsapp-badge">💬 Abrir WhatsApp</span>
+                        </a>
+                    ` : `
+                        <div class="profile-popup-item text-muted">
+                            <span class="profile-popup-icon">📱</span>
+                            <span>WhatsApp não cadastrado</span>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            popup.classList.add('active');
+        });
+
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showToast('Erro ao carregar perfil', 'error');
+    }
+
+    hideLoading();
+}
+
+function closeReporterProfile() {
+    const popup = document.querySelector('.profile-popup');
+    if (popup) {
+        popup.classList.remove('active');
+        setTimeout(() => popup.remove(), 300);
+    }
+}
 
 // ========================================
 // BUG ACTIONS

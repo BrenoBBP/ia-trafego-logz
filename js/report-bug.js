@@ -15,6 +15,15 @@ let selectedFiles = [];
 
     currentUser = profile;
 
+    // Check if profile is complete (WhatsApp is required)
+    if (!profile.whatsapp) {
+        showToast('Complete seu perfil com o WhatsApp para reportar bugs', 'warning');
+        setTimeout(() => {
+            window.location.href = 'profile.html?from=report-bug';
+        }, 1500);
+        return;
+    }
+
     hideLoading();
     initFileUpload();
 })();

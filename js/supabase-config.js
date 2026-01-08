@@ -297,19 +297,22 @@ const NAV_CONFIG = {
     'COLABORADOR': [
         { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
         { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' },
-        { href: 'my-bugs.html', icon: '📋', label: 'Meus Bugs' }
+        { href: 'my-bugs.html', icon: '📋', label: 'Meus Bugs' },
+        { href: 'profile.html', icon: '👤', label: 'Meu Perfil' }
     ],
     'DEV': [
         { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
         { href: 'kanban.html', icon: '📋', label: 'Kanban' },
-        { href: 'reports.html', icon: '📊', label: 'Relatórios' }
+        { href: 'reports.html', icon: '📊', label: 'Relatórios' },
+        { href: 'profile.html', icon: '👤', label: 'Meu Perfil' }
     ],
     'ADM': [
         { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
         { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' },
         { href: 'kanban.html', icon: '📋', label: 'Kanban' },
         { href: 'reports.html', icon: '📊', label: 'Relatórios' },
-        { href: 'users.html', icon: '👥', label: 'Usuários' }
+        { href: 'users.html', icon: '👥', label: 'Usuários' },
+        { href: 'profile.html', icon: '👤', label: 'Meu Perfil' }
     ]
 };
 
