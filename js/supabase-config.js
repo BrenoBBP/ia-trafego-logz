@@ -364,3 +364,63 @@ async function initPage(allowedRoles = null) {
 
     return profile;
 }
+
+// ========================================
+// CALLMEBOT WHATSAPP NOTIFICATIONS
+// ========================================
+
+/**
+ * Send WhatsApp notification to all DEV users via CallMeBot
+ * @param {Object} bugData - Bug information to include in notification
+ */
+async function notifyDevsViaCallMeBot(bugData) {
+    try {
+        // Fetch all DEV users with callmebot_apikey
+        const { data: devUsers, error } = await supabaseClient
+            .from('users_profile')
+            .select('name, whatsapp, callmebot_apikey')
+            .eq('role', 'DEV')
+            .not('callmebot_apikey', 'is', null);
+
+        if (error) {
+            console.error('Error fetching DEV users:', error);
+            return;
+        }
+
+        if (!devUsers || devUsers.length === 0) {
+            console.log('No DEV users with CallMeBot configured');
+            return;
+        }
+
+        // Build message
+        const message = `🐛 *NOVO BUG REPORTADO*
+
+👤 Enviado por: ${bugData.reporterName}
+📝 ${bugData.description.substring(0, 200)}${bugData.description.length > 200 ? '...' : ''}
+${bugData.expectedBehavior ? `✅ Esperado: ${bugData.expectedBehavior.substring(0, 100)}${bugData.expectedBehavior.length > 100 ? '...' : ''}` : ''}
+
+🔗 Ver no Kanban: ${window.location.origin}/kanban.html`;
+
+        // Send to each DEV
+        for (const dev of devUsers) {
+            if (!dev.whatsapp || !dev.callmebot_apikey) continue;
+
+            // Clean phone number (remove non-digits)
+            const phone = dev.whatsapp.replace(/\D/g, '');
+            const apikey = dev.callmebot_apikey.trim();
+
+            // CallMeBot API URL
+            const url = `https://api.callmebot.com/whatsapp.php?phone=55${phone}&text=${encodeURIComponent(message)}&apikey=${apikey}`;
+
+            // Send notification (fire and forget)
+            fetch(url, { mode: 'no-cors' })
+                .then(() => console.log(`Notification sent to ${dev.name}`))
+                .catch(err => console.error(`Failed to notify ${dev.name}:`, err));
+        }
+
+        console.log(`Sent notifications to ${devUsers.length} DEV(s)`);
+
+    } catch (error) {
+        console.error('Error sending CallMeBot notifications:', error);
+    }
+}

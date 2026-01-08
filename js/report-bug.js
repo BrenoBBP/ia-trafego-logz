@@ -201,6 +201,13 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
             }
         }
 
+        // 4. Send WhatsApp notification to DEV users
+        notifyDevsViaCallMeBot({
+            reporterName: currentUser.name,
+            description: description,
+            expectedBehavior: expectedBehavior
+        });
+
         // Success!
         showToast('Bug reportado com sucesso! 🎉', 'success');
 

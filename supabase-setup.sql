@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users_profile (
     role TEXT NOT NULL CHECK (role IN ('ADM', 'DEV', 'COLABORADOR')),
     whatsapp TEXT,
     photo_url TEXT,
+    callmebot_apikey TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

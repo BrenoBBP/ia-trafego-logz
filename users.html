@@ -98,12 +98,21 @@
 
                     <div class="form-group">
                         <label class="form-label" for="userRole">Cargo *</label>
-                        <select id="userRoleSelect" class="form-select" required>
+                        <select id="userRoleSelect" class="form-select" required onchange="toggleCallMeBotField()">
                             <option value="">Selecione um cargo</option>
                             <option value="COLABORADOR">Colaborador (envia bugs)</option>
                             <option value="DEV">DEV (recebe bugs)</option>
                             <option value="ADM">ADM (acesso total)</option>
                         </select>
+                    </div>
+
+                    <div class="form-group" id="callmebotGroup" style="display: none;">
+                        <label class="form-label" for="callmebotApikey">CallMeBot API Key (WhatsApp)</label>
+                        <input type="text" id="callmebotApikey" class="form-input" placeholder="Ex: 1234567">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                            Para obter: salve +34 644 66 72 05, envie "I allow callmebot to send me messages" e receba a
+                            apikey.
+                        </p>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -102,7 +102,15 @@ function openCreateModal() {
     document.getElementById('passwordGroup').style.display = 'block';
     document.getElementById('userPassword').required = true;
     document.getElementById('userEmail').disabled = false;
+    document.getElementById('callmebotGroup').style.display = 'none';
+    document.getElementById('callmebotApikey').value = '';
     document.getElementById('userModal').classList.add('active');
+}
+
+function toggleCallMeBotField() {
+    const role = document.getElementById('userRoleSelect').value;
+    const callmebotGroup = document.getElementById('callmebotGroup');
+    callmebotGroup.style.display = role === 'DEV' ? 'block' : 'none';
 }
 
 async function openEditModal(userId) {
@@ -126,6 +134,12 @@ async function openEditModal(userId) {
         document.getElementById('userRoleSelect').value = user.role;
         document.getElementById('passwordGroup').style.display = 'none';
         document.getElementById('userPassword').required = false;
+
+        // Handle CallMeBot field
+        const callmebotGroup = document.getElementById('callmebotGroup');
+        callmebotGroup.style.display = user.role === 'DEV' ? 'block' : 'none';
+        document.getElementById('callmebotApikey').value = user.callmebot_apikey || '';
+
         document.getElementById('userModal').classList.add('active');
 
     } catch (error) {
@@ -158,13 +172,22 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     try {
         if (editingUserId) {
             // UPDATE existing user
+            const updateData = {
+                name: name,
+                role: role,
+                updated_at: new Date().toISOString()
+            };
+
+            // Add callmebot_apikey if DEV
+            if (role === 'DEV') {
+                updateData.callmebot_apikey = document.getElementById('callmebotApikey').value.trim() || null;
+            } else {
+                updateData.callmebot_apikey = null;
+            }
+
             const { error } = await supabaseClient
                 .from('users_profile')
-                .update({
-                    name: name,
-                    role: role,
-                    updated_at: new Date().toISOString()
-                })
+                .update(updateData)
                 .eq('id', editingUserId);
 
             if (error) throw error;
