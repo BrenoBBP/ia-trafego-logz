@@ -6,8 +6,13 @@
 const SUPABASE_URL = 'https://hifffeaitermzwjpupnx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZmZmZWFpdGVybXp3anB1cG54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MTI4NDIsImV4cCI6MjA4MzI4ODg0Mn0.lGIlgm54NmftRxtMr7hyCd8z3hz2EW3b9QQGVBgfswk';
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client - Use the createClient from the global supabase object
+// The CDN script exposes the library at window.supabase, we create the client from it
+const { createClient } = window.supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Expose as 'supabase' for backward compatibility with other scripts
+window.supabase = supabaseClient;
 
 // ========================================
 // AUTH HELPERS
@@ -17,7 +22,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
  * Get the current authenticated user
  */
 async function getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
     if (error) {
         console.error('Error getting user:', error);
         return null;
@@ -32,7 +37,7 @@ async function getCurrentUserProfile() {
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await supabaseClient
         .from('users_profile')
         .select('*')
         .eq('id', user.id)
@@ -50,7 +55,7 @@ async function getCurrentUserProfile() {
  * Sign in with email and password
  */
 async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
     });
@@ -66,7 +71,7 @@ async function signIn(email, password) {
  * Sign up with email and password
  */
 async function signUp(email, password, name) {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
@@ -87,7 +92,7 @@ async function signUp(email, password, name) {
  * Sign out the current user
  */
 async function signOut() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
     if (error) {
         throw error;
     }

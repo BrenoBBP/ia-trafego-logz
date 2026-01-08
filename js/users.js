@@ -30,7 +30,7 @@ let editingUserId = null;
 
 async function loadUsers() {
     try {
-        const { data: users, error } = await supabase
+        const { data: users, error } = await supabaseClient
             .from('users_profile')
             .select('*')
             .order('created_at', { ascending: false });
@@ -112,7 +112,7 @@ async function openEditModal(userId) {
     showLoading('Carregando dados...');
 
     try {
-        const { data: user, error } = await supabase
+        const { data: user, error } = await supabaseClient
             .from('users_profile')
             .select('*')
             .eq('id', userId)
@@ -161,7 +161,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     try {
         if (editingUserId) {
             // UPDATE existing user
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('users_profile')
                 .update({
                     name: name,
@@ -175,14 +175,14 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             showToast('Usuário atualizado com sucesso!', 'success');
         } else {
             // Check if supabase auth is available
-            if (!supabase || !supabase.auth) {
+            if (!supabaseClient || !supabaseClient.auth) {
                 throw new Error('Conexão com autenticação não disponível. Faça login novamente.');
             }
 
             // CREATE new user via Supabase Auth Admin API
             // Note: Using admin.createUser would be better but requires service role key
             // For now, we use signUp with email confirmation disabled in Supabase settings
-            const { data: authData, error: authError } = await supabase.auth.signUp({
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password,
                 options: {
@@ -206,7 +206,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
             }
 
             // Create profile record
-            const { error: profileError } = await supabase
+            const { error: profileError } = await supabaseClient
                 .from('users_profile')
                 .insert({
                     id: authData.user.id,
@@ -278,7 +278,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
 
     try {
         // Delete profile (this doesn't delete the auth user, but disables access)
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('users_profile')
             .delete()
             .eq('id', deletingUserId);

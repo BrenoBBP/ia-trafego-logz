@@ -137,7 +137,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
 
     try {
         // 1. Create the bug record
-        const { data: bug, error: bugError } = await supabase
+        const { data: bug, error: bugError } = await supabaseClient
             .from('bugs')
             .insert({
                 description: description,
@@ -158,7 +158,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
             const fileExt = file.name.split('.').pop();
             const fileName = `${bug.id}/${Date.now()}_${i}.${fileExt}`;
 
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('bug-screenshots')
                 .upload(fileName, file);
 
@@ -168,7 +168,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
             }
 
             // Get public URL
-            const { data: urlData } = supabase.storage
+            const { data: urlData } = supabaseClient.storage
                 .from('bug-screenshots')
                 .getPublicUrl(fileName);
 
@@ -182,7 +182,7 @@ document.getElementById('bugForm').addEventListener('submit', async (e) => {
                 image_url: url
             }));
 
-            const { error: imagesError } = await supabase
+            const { error: imagesError } = await supabaseClient
                 .from('bug_images')
                 .insert(imageRecords);
 

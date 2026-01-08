@@ -42,7 +42,7 @@ let bugsSubscription = null;
 async function loadBugs() {
     try {
         // Load bugs with their images
-        const { data: bugs, error } = await supabase
+        const { data: bugs, error } = await supabaseClient
             .from('bugs')
             .select(`
                 *,
@@ -147,7 +147,7 @@ async function openBugModal(bugId) {
     showLoading('Carregando detalhes...');
 
     try {
-        const { data: bug, error } = await supabase
+        const { data: bug, error } = await supabaseClient
             .from('bugs')
             .select(`
                 *,
@@ -249,7 +249,7 @@ document.getElementById('bugModal').addEventListener('click', (e) => {
 
 async function resolveBug(bugId) {
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('bugs')
             .update({
                 status: 'RESOLVIDO',
@@ -272,7 +272,7 @@ async function resolveBug(bugId) {
 
 async function reopenBug(bugId) {
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('bugs')
             .update({
                 status: 'PENDENTE',
@@ -298,7 +298,7 @@ async function reopenBug(bugId) {
 // ========================================
 
 function subscribeToUpdates() {
-    bugsSubscription = supabase
+    bugsSubscription = supabaseClient
         .channel('bugs_channel')
         .on('postgres_changes',
             {
@@ -328,6 +328,6 @@ function escapeHtml(text) {
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     if (bugsSubscription) {
-        supabase.removeChannel(bugsSubscription);
+        supabaseClient.removeChannel(bugsSubscription);
     }
 });
