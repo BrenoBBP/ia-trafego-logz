@@ -285,3 +285,79 @@ function openLightbox(imageUrl) {
         }
     });
 }
+
+// ========================================
+// DYNAMIC NAVIGATION
+// ========================================
+
+/**
+ * Navigation configuration by role
+ */
+const NAV_CONFIG = {
+    'COLABORADOR': [
+        { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
+        { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' },
+        { href: 'my-bugs.html', icon: '📋', label: 'Meus Bugs' }
+    ],
+    'DEV': [
+        { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
+        { href: 'kanban.html', icon: '📋', label: 'Kanban' },
+        { href: 'reports.html', icon: '📊', label: 'Relatórios' }
+    ],
+    'ADM': [
+        { href: 'dashboard.html', icon: '🏠', label: 'Dashboard' },
+        { href: 'report-bug.html', icon: '🐛', label: 'Reportar Bug' },
+        { href: 'kanban.html', icon: '📋', label: 'Kanban' },
+        { href: 'reports.html', icon: '📊', label: 'Relatórios' },
+        { href: 'users.html', icon: '👥', label: 'Usuários' }
+    ]
+};
+
+/**
+ * Build dynamic navigation based on user role
+ */
+function buildNavigation(role) {
+    const navMenu = document.querySelector('.nav-menu');
+    if (!navMenu) return;
+
+    const navItems = NAV_CONFIG[role] || [];
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+    navMenu.innerHTML = navItems.map(item => {
+        const isActive = item.href === currentPage ? 'active' : '';
+        return `
+            <li>
+                <a href="${item.href}" class="nav-link ${isActive}">
+                    <span>${item.icon}</span>
+                    <span>${item.label}</span>
+                </a>
+            </li>
+        `;
+    }).join('');
+}
+
+/**
+ * Initialize page with user data and navigation
+ */
+async function initPage(allowedRoles = null) {
+    const profile = allowedRoles
+        ? await requireRole(allowedRoles)
+        : await getCurrentUserProfile();
+
+    if (!profile) return null;
+
+    // Update user info in header
+    const userNameEl = document.getElementById('userName');
+    const userRoleEl = document.getElementById('userRole');
+
+    if (userNameEl) userNameEl.textContent = profile.name;
+    if (userRoleEl) {
+        userRoleEl.textContent = profile.role;
+        userRoleEl.classList.add(profile.role.toLowerCase());
+    }
+
+    // Build navigation
+    buildNavigation(profile.role);
+
+    return profile;
+}

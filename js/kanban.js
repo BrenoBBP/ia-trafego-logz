@@ -9,22 +9,11 @@ let bugsSubscription = null;
 (async () => {
     showLoading('Carregando bugs...');
 
-    // Check auth and role
-    const profile = await requireRole(['DEV', 'ADM']);
+    // Initialize page with auth check and navigation (DEV and ADM only)
+    const profile = await initPage(['DEV', 'ADM']);
     if (!profile) return;
 
     currentUser = profile;
-
-    // Update user info in header
-    document.getElementById('userName').textContent = profile.name;
-    const roleEl = document.getElementById('userRole');
-    roleEl.textContent = profile.role;
-    roleEl.classList.add(profile.role.toLowerCase());
-
-    // Show users nav for ADM
-    if (profile.role === 'ADM') {
-        document.getElementById('usersNavItem').classList.remove('hidden');
-    }
 
     // Load bugs
     await loadBugs();

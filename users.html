@@ -20,36 +20,13 @@
                 </div>
 
                 <nav class="nav-menu">
-                    <li>
-                        <a href="dashboard.html" class="nav-link">
-                            <span>🏠</span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="report-bug.html" class="nav-link">
-                            <span>🐛</span>
-                            <span>Reportar Bug</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="kanban.html" class="nav-link">
-                            <span>📋</span>
-                            <span>Kanban</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="users.html" class="nav-link active">
-                            <span>👥</span>
-                            <span>Usuários</span>
-                        </a>
-                    </li>
+                    <!-- Navigation will be built dynamically based on user role -->
                 </nav>
 
                 <div class="user-info">
                     <div class="user-badge">
                         <span id="userName">Carregando...</span>
-                        <span class="user-role adm" id="userRole">ADM</span>
+                        <span class="user-role" id="userRole">...</span>
                     </div>
                     <button class="btn btn-ghost btn-sm" onclick="signOut()">
                         Sair

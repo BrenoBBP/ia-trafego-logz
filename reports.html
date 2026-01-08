@@ -277,30 +277,7 @@
                 </div>
 
                 <nav class="nav-menu">
-                    <li>
-                        <a href="dashboard.html" class="nav-link">
-                            <span>🏠</span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="kanban.html" class="nav-link">
-                            <span>📋</span>
-                            <span>Kanban</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="reports.html" class="nav-link active">
-                            <span>📊</span>
-                            <span>Relatórios</span>
-                        </a>
-                    </li>
-                    <li id="usersNavItem" class="hidden">
-                        <a href="users.html" class="nav-link">
-                            <span>👥</span>
-                            <span>Usuários</span>
-                        </a>
-                    </li>
+                    <!-- Navigation will be built dynamically based on user role -->
                 </nav>
 
                 <div class="user-info">
@@ -405,22 +382,11 @@
         (async () => {
             showLoading('Carregando relatórios...');
 
-            // Check auth - allow DEV and ADM only
-            const profile = await requireRole(['DEV', 'ADM']);
+            // Initialize page with auth check and navigation (DEV and ADM only)
+            const profile = await initPage(['DEV', 'ADM']);
             if (!profile) return;
 
             currentUser = profile;
-
-            // Update user info in header
-            document.getElementById('userName').textContent = profile.name;
-            const roleEl = document.getElementById('userRole');
-            roleEl.textContent = profile.role;
-            roleEl.classList.add(profile.role.toLowerCase());
-
-            // Show users nav for ADM
-            if (profile.role === 'ADM') {
-                document.getElementById('usersNavItem').classList.remove('hidden');
-            }
 
             // Set default date range (last 30 days)
             const endDate = new Date();

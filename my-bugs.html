@@ -92,6 +92,7 @@
             margin-bottom: 1rem;
             display: -webkit-box;
             -webkit-line-clamp: 3;
+            line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -174,24 +175,7 @@
                 </div>
 
                 <nav class="nav-menu">
-                    <li>
-                        <a href="dashboard.html" class="nav-link">
-                            <span>🏠</span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="report-bug.html" class="nav-link">
-                            <span>🐛</span>
-                            <span>Reportar Bug</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="my-bugs.html" class="nav-link active">
-                            <span>📋</span>
-                            <span>Meus Bugs</span>
-                        </a>
-                    </li>
+                    <!-- Navigation will be built dynamically based on user role -->
                 </nav>
 
                 <div class="user-info">
@@ -261,17 +245,11 @@
         (async () => {
             showLoading('Carregando seus bugs...');
 
-            // Check auth - allow COLABORADOR and ADM
-            const profile = await requireRole(['COLABORADOR', 'ADM']);
+            // Initialize page with auth check and navigation (COLABORADOR and ADM)
+            const profile = await initPage(['COLABORADOR', 'ADM']);
             if (!profile) return;
 
             currentUser = profile;
-
-            // Update user info in header
-            document.getElementById('userName').textContent = profile.name;
-            const roleEl = document.getElementById('userRole');
-            roleEl.textContent = profile.role;
-            roleEl.classList.add(profile.role.toLowerCase());
 
             // Load bugs
             await loadMyBugs();

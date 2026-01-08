@@ -9,17 +9,11 @@ let selectedFiles = [];
 (async () => {
     showLoading('Carregando...');
 
-    // Check auth and role
-    const profile = await requireRole(['COLABORADOR', 'ADM']);
+    // Initialize page with auth check and navigation (COLABORADOR and ADM)
+    const profile = await initPage(['COLABORADOR', 'ADM']);
     if (!profile) return;
 
     currentUser = profile;
-
-    // Update user info in header
-    document.getElementById('userName').textContent = profile.name;
-    const roleEl = document.getElementById('userRole');
-    roleEl.textContent = profile.role;
-    roleEl.classList.add(profile.role.toLowerCase());
 
     hideLoading();
     initFileUpload();

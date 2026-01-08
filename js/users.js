@@ -9,14 +9,11 @@ let editingUserId = null;
 (async () => {
     showLoading('Carregando usuários...');
 
-    // Check auth and role - Only ADM can access
-    const profile = await requireRole(['ADM']);
+    // Initialize page with auth check and navigation (ADM only)
+    const profile = await initPage(['ADM']);
     if (!profile) return;
 
     currentUser = profile;
-
-    // Update user info in header
-    document.getElementById('userName').textContent = profile.name;
 
     // Load users
     await loadUsers();
