@@ -174,18 +174,36 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
 
             showToast('Usuário atualizado com sucesso!', 'success');
         } else {
-            // CREATE new user via Supabase Auth
+            // Check if supabase auth is available
+            if (!supabase || !supabase.auth) {
+                throw new Error('Conexão com autenticação não disponível. Faça login novamente.');
+            }
+
+            // CREATE new user via Supabase Auth Admin API
+            // Note: Using admin.createUser would be better but requires service role key
+            // For now, we use signUp with email confirmation disabled in Supabase settings
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
                 options: {
                     data: {
                         name: name
-                    }
+                    },
+                    emailRedirectTo: window.location.origin + '/index.html'
                 }
             });
 
             if (authError) throw authError;
+
+            // Check if user was actually created (signUp might not create if email exists)
+            if (!authData.user) {
+                throw new Error('Falha ao criar usuário. Verifique se o email já está cadastrado.');
+            }
+
+            // Check if user needs email confirmation
+            if (authData.user.identities && authData.user.identities.length === 0) {
+                throw new Error('Este email já está cadastrado.');
+            }
 
             // Create profile record
             const { error: profileError } = await supabase
@@ -209,8 +227,22 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
         console.error('Error saving user:', error);
 
         let message = 'Erro ao salvar usuário';
-        if (error.message?.includes('already registered')) {
-            message = 'Este email já está cadastrado';
+
+        // Handle specific error messages
+        if (error.message) {
+            if (error.message.includes('already registered')) {
+                message = 'Este email já está cadastrado';
+            } else if (error.message.includes('Conexão com autenticação')) {
+                message = error.message;
+            } else if (error.message.includes('Falha ao criar') || error.message.includes('Este email já')) {
+                message = error.message;
+            } else if (error.message.includes('Password should be')) {
+                message = 'A senha deve ter pelo menos 6 caracteres';
+            } else if (error.message.includes('Invalid email')) {
+                message = 'Email inválido';
+            } else if (error.message.includes('rate limit')) {
+                message = 'Muitas tentativas. Aguarde alguns minutos.';
+            }
         }
 
         showToast(message, 'error');
