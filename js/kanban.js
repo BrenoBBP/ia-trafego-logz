@@ -89,7 +89,13 @@ function renderBugCards(containerId, bugs) {
         const initials = getInitials(bug.reporter_name);
 
         return `
-            <div class="bug-card" onclick="openBugModal('${bug.id}')">
+            <div class="bug-card" 
+                 draggable="true" 
+                 data-bug-id="${bug.id}"
+                 data-bug-status="${bug.status}"
+                 ondragstart="handleDragStart(event)"
+                 ondragend="handleDragEnd(event)"
+                 onclick="openBugModal('${bug.id}')">
                 <div class="bug-card-header">
                     <div class="bug-card-reporter">
                         <div class="bug-card-reporter-avatar">${initials}</div>
@@ -124,6 +130,9 @@ function renderBugCards(containerId, bugs) {
             </div>
         `;
     }).join('');
+
+    // Setup drop zones after rendering
+    setupDropZones();
 }
 
 // ========================================
@@ -324,6 +333,119 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ========================================
+// DRAG AND DROP
+// ========================================
+
+let draggedBugId = null;
+
+function handleDragStart(event) {
+    const card = event.target.closest('.bug-card');
+    if (!card) return;
+
+    draggedBugId = card.dataset.bugId;
+    card.classList.add('dragging');
+
+    // Set drag data
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', draggedBugId);
+
+    // Add visual feedback to columns
+    document.querySelectorAll('.kanban-cards').forEach(zone => {
+        zone.classList.add('drop-zone');
+    });
+}
+
+function handleDragEnd(event) {
+    const card = event.target.closest('.bug-card');
+    if (card) {
+        card.classList.remove('dragging');
+    }
+
+    draggedBugId = null;
+
+    // Remove visual feedback from columns
+    document.querySelectorAll('.kanban-cards').forEach(zone => {
+        zone.classList.remove('drop-zone', 'drag-over');
+    });
+}
+
+function setupDropZones() {
+    const pendingZone = document.getElementById('pendingBugs');
+    const resolvedZone = document.getElementById('resolvedBugs');
+
+    [pendingZone, resolvedZone].forEach(zone => {
+        if (!zone) return;
+
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            zone.classList.add('drag-over');
+        });
+
+        zone.addEventListener('dragleave', (e) => {
+            // Only remove drag-over if actually leaving the zone
+            if (!zone.contains(e.relatedTarget)) {
+                zone.classList.remove('drag-over');
+            }
+        });
+
+        zone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+
+            const bugId = e.dataTransfer.getData('text/plain');
+            if (!bugId) return;
+
+            const newStatus = zone.id === 'resolvedBugs' ? 'RESOLVIDO' : 'PENDENTE';
+            const currentCard = document.querySelector(`[data-bug-id="${bugId}"]`);
+            const currentStatus = currentCard?.dataset.bugStatus;
+
+            // Only update if status is changing
+            if (currentStatus !== newStatus) {
+                await updateBugStatus(bugId, newStatus);
+            }
+        });
+    });
+}
+
+async function updateBugStatus(bugId, newStatus) {
+    showLoading('Atualizando status...');
+
+    try {
+        const updateData = {
+            status: newStatus,
+            updated_at: new Date().toISOString()
+        };
+
+        // If resolving, add resolved info
+        if (newStatus === 'RESOLVIDO') {
+            updateData.resolved_by = currentUser.id;
+            updateData.resolved_at = new Date().toISOString();
+        } else {
+            // If reopening, clear resolved info
+            updateData.resolved_by = null;
+            updateData.resolved_at = null;
+        }
+
+        const { error } = await supabaseClient
+            .from('bugs')
+            .update(updateData)
+            .eq('id', bugId);
+
+        if (error) throw error;
+
+        showToast(newStatus === 'RESOLVIDO' ? 'Bug marcado como resolvido!' : 'Bug reaberto!', 'success');
+        await loadBugs();
+
+    } catch (error) {
+        console.error('Error updating bug status:', error);
+        showToast('Erro ao atualizar status do bug', 'error');
+    }
+
+    hideLoading();
 }
 
 // Cleanup on page unload
